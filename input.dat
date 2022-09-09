@@ -1,0 +1,68 @@
+1d-2,1d+02,81        ! rmin,rmax,rn
+0d0,6d0,3             ! ymin,ymax,yn
+1                     ! IniCnd
+1                     ! EvoMth
+1                     ! IntMth
+1                     ! EvoKer
+1                     ! RunCup
+2                     ! IntPol
+50000,8               ! ncall,itmax
+
+
+
+
+
+## input description:
+
+* rmin, rmax is the range of the dipole in size
+- theoretically from 0 to infinity (but singularity at 0)
+- rmin should be strictly greater than 0, rmin>0
+- in exp scale: (0.01,0.1,1,10,...) instead of (0.1,0.2,0.3,...)
+- the range of 1e-10 to 1e5 should cover most phase space
+- if evolve to large rapidity value, extend rmin to lower values
+
+* ymin, ymax is the range of rapidity (range of evolution)
+- since initial condition is always at N(r,Y=0), ymin should be 0d0
+- ymax at 60 would correspond to x=10^-30, enough for current colliders
+
+* IniCnd sets the initial condition for the dipole amplitude at N(r,Y=0)
+- 1. GBW-gamma initial condition
+- 2. MV-gamma initial condition
+- 3. user defined initial condition
+
+* EvoMth is choice of method to evolve N(Y) in Y
+- which is also the method of solving the BK differential equation
+- given N(Y=y) at y>0, solve for N(Y=y+yh) with yh the step width
+- 1. 1st-order Runge-Kutta at O(yh^1) (Euler method)
+- 2. 2nd-order Runge-Kutta at O(yh^2)
+- 3. 4th-order Runge-Kutta at O(yh^4) (RK4)
+
+* IntMth is the integration method for d^2r of the gluon position
+- given the dipole of size r01, on transverse plane parallel to x-axis
+- integration of all possible positions on the plane has different methods
+- 1. d^2r = dx dy, cartesian coordinates, symmetry factor=4
+- 2. d^2r = dphi r dr, polar coordinates relative to origin, sym.fac.=2
+- 3. d^2r = dtheta r02 dr02, polar coordinate relative to r0(or r1), no sym.
+
+* EvoKer is the BK evolution kernel
+- 1. leading order (parent-dipole) prescription
+- 2. Balitsky prescription
+- 3. Kovchegov-Weigert prescription
+- alphas can fixed or run with the choice of 1.
+- RunCup must set to 2 with the choice of 2. or 3.
+
+* RunCup lets the program calculate with a running coupling as(r)
+- 1. alphas fixed
+- 2. alphas runs with r
+- 3. user define alphas prescription
+
+* IntPol is the choice of interpolation method to find N(r) with given r
+- 1. N(r) vs r assume to be linear
+- 2. ln(N(r)) vs ln(r) assume to be linear
+- 3. cubic spline (using the NR library, time consuming)
+
+* Vegas is multidimensional Monte-Carlo integration
+- ncall is the number of points (ncall>1000)
+- itmax is the iteration number (itmax<10)
+
+asfix is the fixed value of the strong coupling alpha_s

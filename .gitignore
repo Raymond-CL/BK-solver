@@ -1,0 +1,8 @@
+*.dep
+*.mod
+*.smod
+*.lib
+*.o
+*.obj
+*.out
+*.exe
