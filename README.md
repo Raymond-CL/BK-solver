@@ -1,5 +1,7 @@
 # BK-solver
 
+>_*_This program is currently under construction!!!_*_
+
 A program written in Fortran that generates a 2-dimensional table of the dipole amplitude $N(r,Y)$ by solving the Balitsky-Kovchegov (BK) equation given an intial condition at $N(r,Y=0)$. The BK equation in coordinate (configuration) space is given as:
 
 $$
@@ -19,3 +21,12 @@ Most of the program functions can be configured by setting the `input.dat` file 
   - since the initial condition is set to $Y=0$ (mostly), `ymin` should be set to 0.
   - `ymax` at 60 corresponds to momentum fraction $x\sim 10^{-30}$, enough for current particle colliders.
 - `IniCnd` sets the initial condition of the dipole amplitude at $N(r,Y=0)$
+  - 1. GBW- $\gamma$ prescription
+  - 2. MV- $\gamma$ prescription
+  - 3. user defined
+- `EvoMth` set the evolution method (method of solving differential equation)
+  - Given $N(r,Y)$, evolve to next step $N(r,Y+h)$ with step width $h$ using the standard Runge-Kutta method at different order
+  - 1st-order Runge-Kutta at $\mathcal{O}(h^1)$ (Euler's method)
+  - 2nd-order Runge-Kutta at $\mathcal{O}(h^2)$
+  - 4th-order Runge-Kutta at $\mathcal{O}(h^4)$ (RK4)
+- `IntMth` sets the integration method
