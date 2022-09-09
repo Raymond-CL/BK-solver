@@ -10,7 +10,7 @@ $$
 
 where the quark anti-quark ( $q\bar{q}$ ) dipole has transverse coordinate at $r_0$ and $r_1$ with size (separation distance) $r_{01}\equiv |\vec{r_0}-\vec{r_1}|$. The equation gives the evolution of this dipole amplitude $N(r,Y)$ along the rapidity $Y=\ln(s/s_0)=\ln(x_0/x)$ or equivalently along the momentum fraction $x$. The RHS of the equation performs an integration on $r_2$, which is the transverse coordinate of the radiated gluon ( $g$ ) by the dipole. In the large $N_c$ approximation, the gluon can be viewed as a $q\bar{q}$ pair, which gives another two dipoles of size $r_{02}$ and $r_{12}$. The integration is then simply the Riemann sum on all possible transverse coordinates of $r_2$ relative to $r_{01}$. ${\rm ker}$ is the kernel of the integration.
 
-Most of the program functions can be configured by setting the `input.dat` file in root directory.
+Most of the program functions can be configured by setting the `[input.dat](./input.dat)` file in root directory.
 
 ### input description:
 
