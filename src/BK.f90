@@ -176,16 +176,18 @@ contains
   region(2) = 0d0;  region(4) = +20d0
   do ir = 1,rn
     vint_rind = ir
-    init = -1
-    call vegas(region(1:2*ndim),fxn,init,ncall,itmax,nprn,avgi,sd,chi2a)
-    init = +1
-    call vegas(region(1:2*ndim),fxn,init,ncall,itmax,nprn,avgi,sd,chi2a)
-    !if(avgi.lt.0d0) then
-    !  write(*,*) "warning: negative gradient",vint_in(ir),avgi
-    !  write(*,*) "setting this to zero"
-    !  avgi = 0d0
-    !endif
-    vint_out(ir) = avgi
+    if(vint_in(vint_rind).eq.1d0) then
+      vint_out(ir) = 0d0
+    else
+      init = -1
+      call vegas(region(1:2*ndim),fxn,init,ncall,itmax,nprn,avgi,sd,chi2a)
+      init = +1
+      call vegas(region(1:2*ndim),fxn,init,ncall,itmax,nprn,avgi,sd,chi2a)
+      !if(avgi.lt.0d0) then
+      !  write(*,*) "warning: negative gradient",vint_in(ir),avgi
+      !endif
+      vint_out(ir) = avgi
+    endif
   enddo
   end subroutine vint
 
