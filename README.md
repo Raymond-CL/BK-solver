@@ -13,4 +13,9 @@ Most of the program functions can be configured by setting the `input.dat` file 
 ### input description:
 
 - `rmin,rmax,rn` sets the range of the dipole dize in the table
-  - 
+  - theoretically the dipole size ranges from 0 to infinity. But because $r\rightarrow0$ is singular and the table arrange the value in logarithmic scale, `rmin` should be stricly greater than 0.
+  - the range of $10^{-10} < r < 10^{+5}$ should cover most phase space. If you want to evolve to a larger $Y$ value, then you should extend `rmin` to smaller value.
+- `ymin,ymax,yn` set the range of rapidity (range of evolution)
+  - since the initial condition is set to $Y=0$ (mostly), `ymin` should be set to 0.
+  - `ymax` at 60 corresponds to momentum fraction $x\sim 10^{-30}$, enough for current particle colliders.
+- `IniCnd` sets the initial condition of the dipole amplitude at $N(r,Y=0)$
