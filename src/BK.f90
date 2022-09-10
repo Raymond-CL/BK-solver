@@ -213,7 +213,7 @@ contains
   Nr12 = intpolr(vint_in,r12)
   fxn = K * (Nr02 + Nr12 - Nr01)
   if(isnan(fxn)) then
-    write(*,*) "fxn nan"
+    write(*,*) "fxn nan:"
     write(*,*) pt1,pt2
     write(*,*) r01,r02,r12
     write(*,*) Nr01,Nr02,Nr12
