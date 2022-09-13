@@ -1,9 +1,3 @@
-# you should have the latest GNU fortran compiler installed, 
-# go to gcc.gnu.org/fortran for documentation
-# on a Ubuntu, along with other C compilers, simply:
-# sudo apt install gfortran build-essential makedepf90
-
-
 # please use the latest GNU compiler
 FC = gfortran
 
