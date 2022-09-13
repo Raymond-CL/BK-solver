@@ -206,7 +206,9 @@ contains
   r01 = BKtable(vint_rind,-1)
   r02 = sqrt((r01/2d0+pt1)**2 + pt2**2)
   r12 = sqrt((r01/2d0-pt1)**2 + pt2**2)
-  if(r02.eq.0d0 .or. r12.eq.0d0) return
+  ! divergence handling
+  if(r02.le.epsilon(r02) .or. r12.le.epsilon(r12)) return
+  !if(r02.eq.0d0 .or. r12.eq.0d0) return
   K = ker(r01,r02,r12)
   Nr01 = intpolr(vint_in,r01)
   Nr02 = intpolr(vint_in,r02)
