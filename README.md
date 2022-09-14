@@ -57,7 +57,7 @@ Some of the more subtle 'user defined' modifications can be set in the source co
 - `IntMth` sets the integration method of $d^2r_2$
   - `1` $d^2r_2=dx~dy$, generates cartesian coordinates $(x,y)$ that is used to determine $r_{02}$ and $r_{12}$, with symmetric factor = 4.
   - `2` $d^2r_2=d\phi~rdr$, generates polar coordinates $(r,\phi)$ relative to the dipole center and determine $r_{02}$ and $r_{12}$, with symmetric factor = 4.
-  - `3` $d^2r_2=d\theta~r_{02}dr_{02}$, generates polar coordinates $(r_{02},\theta)$ relative to $r_0$ and determine $r_{12}$, with symmetric factor = 2.
+  - `3` $d^2r_2=d\theta~r_{02}dr_{02}$, generates polar coordinates $(r_{02},\theta)$ relative to $r_0$ and determine $r_{12}$, with symmetric factor = 2._
 - `EvoKer` sets the BK evolution kernel ${\rm ker}$
   - `1` leading-order (parent dipole) prescription
   - `2` Balitsky prescription
