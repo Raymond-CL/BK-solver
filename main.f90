@@ -9,7 +9,7 @@ program main
 
   call BKinfo()
 
-  !call runBK()
+  call runBK()
 
   call printBK()
 

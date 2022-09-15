@@ -8,9 +8,8 @@ module BK
   character(*), parameter :: ifname = 'input.dat'
   character(*), parameter :: ofname = 'BKtable.dat'
   ! kinematic boundary and data table
-  real(rp) :: rmin,rmax,ymin,ymax
   integer(2) :: rn,yn
-  real(rp) :: yh
+  real(rp) :: rmin,rmax, ymin,ymax, yh
   real(rp), allocatable, target, dimension(:,:) :: BKtable
   ! program options and flags
   integer(1) :: IniCnd,EvoMth,IntMth,EvoKer,RunCup,IntPol
@@ -20,17 +19,17 @@ module BK
   integer(2) :: vint_rind
   real(rp), dimension(:), pointer :: vint_in,vint_out
   real(rp), dimension(:), pointer :: k1,k2,k3,k4
-  real(rp), dimension(:), pointer :: nrtemp1,nrtemp2,nrtemp3
+  real(rp), dimension(:), pointer :: Nrt1,Nrt2,Nrt3
 
 contains
   
-  ! subroutine to set parameters
+  ! subroutine to set parameters (checked)
   subroutine setBK()
   implicit none
   integer, parameter :: ifunit = 11
   integer(1) :: err
-  real(rp) :: ra,rb,r
   integer(2) :: ir
+  real(rp) :: rt,r
   ! read from input.dat
   open(unit=ifunit,file=ifname,status='old')
   read(ifunit,*) rmin,rmax,rn
@@ -52,33 +51,32 @@ contains
   if(err.ne.0) call exit(3)
   BKtable = 0d0
   ! fill initial condition data
-  ra = rmin
-  rb = log(rmax/ra)/(rn-1)
+  rt = log(rmax/rmin)/(rn-1)
   do ir = 1,rn
-    r = ra*exp(rb*(ir-1))
+    r = rmin * exp(rt*(ir-1))
     BKtable(ir,-1) = r
     BKtable(ir, 0) = iniBK(r)
   enddo
-  ! initialize temporary arrays for different evolution methods
+  ! initialize temporary arrays for ODE
   if(EvoMth.eq.1) then
     allocate(k1(1:rn))
   elseif(EvoMth.eq.2) then
     allocate(k1(1:rn))
     allocate(k2(1:rn))
-    allocate(nrtemp1(1:rn))
+    allocate(Nrt1(1:rn))
   elseif(EvoMth.eq.3) then
     allocate(k1(1:rn))
     allocate(k2(1:rn))
     allocate(k3(1:rn))
-    allocate(nrtemp1(1:rn))
-    allocate(nrtemp2(1:rn))
-    allocate(nrtemp3(1:rn))
+    allocate(Nrt1(1:rn))
+    allocate(Nrt2(1:rn))
+    allocate(Nrt3(1:rn))
   endif
   end subroutine setBK
 
 
 
-  ! BK initial condition
+  ! BK initial condition (need update on other IC)
   function iniBK(r) result (ny0)
   implicit none
   real(rp), intent(in) :: r
@@ -90,7 +88,7 @@ contains
     Qs2 = 0.15d0; gam = 1.13d0
     ny0 = 1d0 - exp( -(r*r*Qs2/4d0)**gam )
   elseif(IniCnd.eq.3) then
-    ny0 = 1d0 - exp( -(r*r/16d0))
+    ny0 = 1d0 - exp( -(r*r/4d0))
   else
     call exit(4)
   endif
@@ -99,7 +97,7 @@ contains
 
 
 
-  ! prints program infomation
+  ! prints program infomation (checked)
   subroutine BKinfo()
   write(*,*) "===========BK evolution solver==========="
   write(*,*) "given initial condition N(r,Y=0)"
@@ -107,17 +105,17 @@ contains
   write(*,*) "by solving BK equation differential in Y"
   write(*,*) "-> reading input from: ",trim(ifname)
   write(*,*) "-> table range:"
-  write(*,"(5x,es8.1,a6,es8.1,i5)") rmin,"< r <",rmax,rn
-  write(*,"(5x,es8.1,a6,es8.1,i5)") ymin,"< Y <",ymax,yn
+  write(*,"(5x,es8.1,a6,es8.1,i5,a6)") rmin,"< r <",rmax,rn,"steps"
+  write(*,"(5x,es8.1,a6,es8.1,i5,a6)") ymin,"< Y <",ymax,yn,"steps"
   if(IniCnd.eq.1) write(*,*) "-> initial condition: GBW"
   if(IniCnd.eq.2) write(*,*) "-> initial condition: MV"
   if(IniCnd.eq.3) write(*,*) "-> initial condition: user defined"
   if(EvoMth.eq.1) write(*,*) "-> evolution method: 1st-order Runge-Kutta"
   if(EvoMth.eq.2) write(*,*) "-> evolution method: 2nd-order Runge-Kutta"
   if(EvoMth.eq.3) write(*,*) "-> evolution method: 4th-order Runge-Kutta"
-  if(IntMth.eq.1) write(*,*) "-> integrating: dx dy"
-  if(IntMth.eq.2) write(*,*) "-> integrating: dphi r dr"
-  if(IntMth.eq.3) write(*,*) "-> integrating: dtheta r02 dr02"
+  if(IntMth.eq.1) write(*,*) "-> integrating as: dx dy"
+  if(IntMth.eq.2) write(*,*) "-> integrating as: dphi r dr"
+  if(IntMth.eq.3) write(*,*) "-> integrating as: dtheta r02 dr02"
   if(EvoKer.eq.1) write(*,*) "-> kernel: LO prescription"
   if(EvoKer.eq.2) write(*,*) "-> kernel: Balitsky prescription"
   if(EvoKer.eq.3) write(*,*) "-> kernel: Kovchegov-Weigert prescription"
@@ -209,11 +207,11 @@ contains
       init = +1
       call vegas(region(1:2*ndim),fxn,init,ncall,itmax,nprn,avgi,sd,chi2a)
       if(avgi.lt.0d0) then
-!        write(*,*) "warning: negative gradient",vint_in(ir),avgi
+        !write(*,*) "warning: negative gradient",ir,BKtable(ir,-1),vint_in(ir),avgi
+        if(avgi.lt.0.1d0) write(*,*) 'wow, too negative there',ir,vint_in(ir),avgi
         avgi = 0d0
       endif
       vint_out(ir) = avgi
-!      write(*,*) ir,BKtable(ir,-1),vint_in(ir),vint_out(ir)
     endif
   enddo
   end subroutine vint
@@ -244,18 +242,15 @@ contains
     r12 = sqrt( (r01-pt2*cos(pt1))**2 + (pt2*sin(pt1))**2 )
   endif
   ! divergence handling
-  if(r02.le.epsilon(r02) .or. r12.le.epsilon(r12)) return
-  !if(r02.eq.0d0 .or. r12.eq.0d0) return
+  !if(r02.le.epsilon(r02) .or. r12.le.epsilon(r12)) return
   K = ker(r01,r02,r12)
   Nr01 = intpolr(vint_in,r01)
   Nr02 = intpolr(vint_in,r02)
   Nr12 = intpolr(vint_in,r12)
   fxn = K * (Nr02 + Nr12 - Nr01 - Nr02*Nr12)
-  if(IntMth.eq.2 .or. IntMth.eq.3) then
-    fxn = fxn * pt2
-  endif
+  if(IntMth.eq.2 .or. IntMth.eq.3) fxn = fxn * pt2
   if(isnan(fxn)) then
-    write(*,*) "fxn nan:"
+    write(*,*) "fxn NaN:"
     write(*,*) pt1,pt2
     write(*,*) r01,r02,r12
     write(*,*) Nr01,Nr02,Nr12
@@ -343,11 +338,11 @@ contains
   endif
   ! check bound
   if(res.lt.0d0) then
-    !write(*,*) "interpolation result error",res
+    write(*,*) "interpolation result error",res
     res = 0d0
   endif
   if(res.gt.1d0) then
-    !write(*,*) "interpolation result error",res
+    write(*,*) "interpolation result error",res
     res = 1d0
   endif
   ! check NaN (develop mode)
@@ -368,14 +363,14 @@ contains
   integer(1), parameter :: ofunit = 12
   write(*,*) "========================================="
   write(*,*) "writing BK table to ",trim(ofname)
-  !open(unit=ofunit,file=trim(ofname),status='replace')
+  open(unit=ofunit,file=trim(ofname),status='replace')
   do ir = 1,rn
     do iy =-1,yn
-      write(*,"(es15.6)",advance="no") BKtable(ir,iy)
+      write(ofunit,"(es15.6)",advance="no") BKtable(ir,iy)
     enddo
-    write(*,*)
+    write(ofunit,*)
   enddo
-  !close(ofunit)
+  close(ofunit)
   write(*,*) "========================================="
   end subroutine printBK
 
