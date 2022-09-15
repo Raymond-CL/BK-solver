@@ -17,8 +17,8 @@ module BK
   ! vegas settings
   integer :: ncall,itmax
   ! temporary pointers and parameters
-  real(rp), dimension(:), pointer :: vint_in,vint_out
   integer(2) :: vint_rind
+  real(rp), dimension(:), pointer :: vint_in,vint_out
   real(rp), dimension(:), pointer :: k1,k2,k3,k4
   real(rp), dimension(:), pointer :: nrtemp1,nrtemp2,nrtemp3
 
@@ -50,7 +50,8 @@ contains
   yh = (ymax-ymin)/dble(yn)
   allocate(BKtable(1:rn,-1:yn),stat=err)
   if(err.ne.0) call exit(3)
-  BKtable = 0d0 ! may not be necessary
+  BKtable = 0d0
+  ! fill initial condition data
   ra = rmin
   rb = log(rmax/ra)/(rn-1)
   do ir = 1,rn
@@ -62,13 +63,20 @@ contains
   if(EvoMth.eq.1) then
     allocate(k1(1:rn))
   elseif(EvoMth.eq.2) then
-    allocate(k1(1:rn)); allocate(k2(1:rn))
+    allocate(k1(1:rn))
+    allocate(k2(1:rn))
     allocate(nrtemp1(1:rn))
   elseif(EvoMth.eq.3) then
-    allocate(k1(1:rn)); allocate(k2(1:rn)); allocate(k3(1:rn))
-    allocate(nrtemp1(1:rn)); allocate(nrtemp2(1:rn)); allocate(nrtemp3(1:rn))
+    allocate(k1(1:rn))
+    allocate(k2(1:rn))
+    allocate(k3(1:rn))
+    allocate(nrtemp1(1:rn))
+    allocate(nrtemp2(1:rn))
+    allocate(nrtemp3(1:rn))
   endif
   end subroutine setBK
+
+
 
   ! BK initial condition
   function iniBK(r) result (ny0)
@@ -88,6 +96,8 @@ contains
   endif
   return
   end function iniBK
+
+
 
   ! prints program infomation
   subroutine BKinfo()
@@ -122,46 +132,53 @@ contains
   write(*,*) "========================================="
   end subroutine BKinfo
 
+
+
+  ! running evolution (Runge-Kutta)
   subroutine runBK()
   implicit none
   integer(2) :: iy
+!  iy = 1
   do iy = 1,yn
   write(*,*) "solving: Y =", iy*(ymax/yn)
-  if(EvoMth.eq.1) then
+!  if(EvoMth.eq.1) then
     vint_in => BKtable(:,iy-1)
     vint_out => k1
-    call vint
+    call vint()
     BKtable(:,iy) = BKtable(:,iy-1) + k1(:)*yh
-  elseif(EvoMth.eq.2) then
-    vint_in => BKtable(:,iy-1)
-    vint_out => k1
-    call vint()
-    nrtemp1 = BKtable(:,iy-1) + k1*yh/2d0
-    vint_in => nrtemp1
-    vint_out => k2
-    call vint
-    BKtable(:,iy) = BKtable(:,iy-1) + (k1+2d0*k2+2d0*k3+k4)*yh/6d0
-  elseif(EvoMth.eq.3) then
-    vint_in => BKtable(:,iy-1)
-    vint_out => k1
-    call vint()
-    nrtemp1 = BKtable(:,iy-1) + k1*yh/2d0
-    vint_in => nrtemp1
-    vint_out => k2
-    call vint
-    nrtemp2 = BKtable(:,iy-1) + k2*yh/2d0
-    vint_in =>  nrtemp2
-    vint_out => k3
-    call vint
-    nrtemp3 = BKtable(:,iy-1) + k3*yh
-    vint_in => nrtemp3
-    vint_out => k4
-    call vint
-    BKtable(:,iy) = BKtable(:,iy-1) + (k1+2d0*k2+2d0*k3+k4)*yh/6d0
-  endif
+!  elseif(EvoMth.eq.2) then
+!    vint_in => BKtable(:,iy-1)
+!    vint_out => k1
+!    call vint()
+!    nrtemp1 = BKtable(:,iy-1) + k1*yh/2d0
+!    vint_in => nrtemp1
+!    vint_out => k2
+!    call vint()
+!    BKtable(:,iy) = BKtable(:,iy-1) + k2(:)*yh
+!  elseif(EvoMth.eq.3) then
+!    vint_in => BKtable(:,iy-1)
+!    vint_out => k1
+!    call vint()
+!    nrtemp1 = BKtable(:,iy-1) + k1(:)*yh/2d0
+!    vint_in => nrtemp1
+!    vint_out => k2
+!    call vint()
+!    nrtemp2 = BKtable(:,iy-1) + k2(:)*yh/2d0
+!    vint_in =>  nrtemp2
+!    vint_out => k3
+!    call vint()
+!    nrtemp3 = BKtable(:,iy-1) + k3(:)*yh
+!    vint_in => nrtemp3
+!    vint_out => k4
+!    call vint()
+!    BKtable(:,iy) = BKtable(:,iy-1) + (k1(:)+2d0*k2(:)+2d0*k3(:)+k4(:))*yh/6d0
+!  endif
   enddo
   end subroutine runBK
 
+
+
+  ! main integration loop
   subroutine vint()
   use nrtype
   use nr, only : vegas
@@ -172,8 +189,16 @@ contains
   real(sp) :: avgi,chi2a,sd
   real(sp), dimension(2*ndim) :: region
   nprn = -1
-  region(1) = 0d0;  region(3) = +20d0
-  region(2) = 0d0;  region(4) = +20d0
+  if(IntMth.eq.1) then
+    region(1) = -50d0;  region(3) = +50d0
+    region(2) = -50d0;  region(4) = +50d0
+  elseif(IntMth.eq.2) then
+    region(1) = 0d0;  region(3) = 2d0*PI
+    region(2) = 0d0;  region(4) = +50d0
+  elseif(IntMth.eq.3) then
+    region(1) = 0d0;  region(3) = 2d0*PI
+    region(2) = 0d0;  region(4) = +50d0
+  endif
   do ir = 1,rn
     vint_rind = ir
     if(vint_in(vint_rind).eq.1d0) then
@@ -183,13 +208,17 @@ contains
       call vegas(region(1:2*ndim),fxn,init,ncall,itmax,nprn,avgi,sd,chi2a)
       init = +1
       call vegas(region(1:2*ndim),fxn,init,ncall,itmax,nprn,avgi,sd,chi2a)
-      !if(avgi.lt.0d0) then
-      !  write(*,*) "warning: negative gradient",vint_in(ir),avgi
-      !endif
+      if(avgi.lt.0d0) then
+!        write(*,*) "warning: negative gradient",vint_in(ir),avgi
+        avgi = 0d0
+      endif
       vint_out(ir) = avgi
+!      write(*,*) ir,BKtable(ir,-1),vint_in(ir),vint_out(ir)
     endif
   enddo
   end subroutine vint
+
+
 
   ! main integrand for vegas
   function fxn(pt,wgt)
@@ -204,8 +233,16 @@ contains
   pt1 = pt(1)
   pt2 = pt(2)
   r01 = BKtable(vint_rind,-1)
-  r02 = sqrt((r01/2d0+pt1)**2 + pt2**2)
-  r12 = sqrt((r01/2d0-pt1)**2 + pt2**2)
+  if(IntMth.eq.1) then
+    r02 = sqrt((r01/2d0+pt1)**2 + pt2**2)
+    r12 = sqrt((r01/2d0-pt1)**2 + pt2**2)
+  elseif(IntMth.eq.2) then
+    r02 = sqrt((r01/2d0+pt2*cos(pt1))**2 + (pt2*sin(pt1))**2)
+    r12 = sqrt((r01/2d0-pt2*cos(pt1))**2 + (pt2*sin(pt1))**2)
+  elseif(IntMth.eq.3) then
+    r02 = pt2
+    r12 = sqrt( (r01-pt2*cos(pt1))**2 + (pt2*sin(pt1))**2 )
+  endif
   ! divergence handling
   if(r02.le.epsilon(r02) .or. r12.le.epsilon(r12)) return
   !if(r02.eq.0d0 .or. r12.eq.0d0) return
@@ -213,7 +250,10 @@ contains
   Nr01 = intpolr(vint_in,r01)
   Nr02 = intpolr(vint_in,r02)
   Nr12 = intpolr(vint_in,r12)
-  fxn = K * (Nr02 + Nr12 - Nr01)
+  fxn = K * (Nr02 + Nr12 - Nr01 - Nr02*Nr12)
+  if(IntMth.eq.2 .or. IntMth.eq.3) then
+    fxn = fxn * pt2
+  endif
   if(isnan(fxn)) then
     write(*,*) "fxn nan:"
     write(*,*) pt1,pt2
@@ -234,14 +274,16 @@ contains
     res = 0d0; return
   endif
   if(EvoKer.eq.1) then
-    res = Nc * as(r01) / 2d0 / PI / PI
-    res = res * r01*r01/r02/r02/r12/r12
-  elseif(EvoKer.eq.2) then
-    ! Balitsky prescription
-    res = 0d0
-  elseif(EvoKer.eq.3) then
-    ! KW prescription
-    res = 0d0
+    res = r01*r01/r02/r02/r12/r12
+    res = res * Nc*as(r01)/2d0/PI/PI
+  elseif(EvoKer.eq.2) then  ! Balitsky prescription
+    res = r01*r01/r02/r02/r12/r12
+    res = res + (as(r02)/as(r12)-1d0)/r02/r02
+    res = res + (as(r12)/as(r02)-1d0)/r12/r12
+    res = res * Nc*as(r01)/2d0/PI/PI
+  elseif(EvoKer.eq.3) then  ! KW prescription (not yet)
+    res = r01*r01/r02/r02/r12/r12
+    res = res * Nc*as(r01)/2d0/PI/PI
   endif
   return
   end function ker
