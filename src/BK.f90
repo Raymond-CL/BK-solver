@@ -208,7 +208,7 @@ contains
       call vegas(region(1:2*ndim),fxn,init,ncall,itmax,nprn,avgi,sd,chi2a)
       if(avgi.lt.0d0) then
         !write(*,*) "warning: negative gradient",ir,BKtable(ir,-1),vint_in(ir),avgi
-        if(avgi.lt.0.1d0) write(*,*) 'wow, too negative there',ir,vint_in(ir),avgi
+        if(avgi.lt.-0.1d0) write(*,*) 'wow, too negative there',ir,vint_in(ir),avgi
         avgi = 0d0
       endif
       vint_out(ir) = avgi
