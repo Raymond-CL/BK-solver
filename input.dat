@@ -1,7 +1,7 @@
-1d-10,1d+02,241         ! rmin,rmax,rn
-0d0,50d0,500           ! ymin,ymax,yn
+1d-10,1d+02,25         ! rmin,rmax,rn
+0d0,1d0,10           ! ymin,ymax,yn
 1                     ! IniCnd
-1                     ! EvoMth
+3                      ! EvoMth
 1                     ! IntMth
 1                     ! EvoKer
 1                     ! RunCup

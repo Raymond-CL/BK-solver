@@ -68,6 +68,7 @@ contains
     allocate(k1(1:rn))
     allocate(k2(1:rn))
     allocate(k3(1:rn))
+    allocate(k4(1:rn))
     allocate(Nrt1(1:rn))
     allocate(Nrt2(1:rn))
     allocate(Nrt3(1:rn))
@@ -136,41 +137,40 @@ contains
   subroutine runBK()
   implicit none
   integer(2) :: iy
-!  iy = 1
   do iy = 1,yn
   write(*,*) "solving: Y =", iy*(ymax/yn)
-!  if(EvoMth.eq.1) then
+  if(EvoMth.eq.1) then
     vint_in => BKtable(:,iy-1)
     vint_out => k1
     call vint()
     BKtable(:,iy) = BKtable(:,iy-1) + k1(:)*yh
-!  elseif(EvoMth.eq.2) then
-!    vint_in => BKtable(:,iy-1)
-!    vint_out => k1
-!    call vint()
-!    nrtemp1 = BKtable(:,iy-1) + k1*yh/2d0
-!    vint_in => nrtemp1
-!    vint_out => k2
-!    call vint()
-!    BKtable(:,iy) = BKtable(:,iy-1) + k2(:)*yh
-!  elseif(EvoMth.eq.3) then
-!    vint_in => BKtable(:,iy-1)
-!    vint_out => k1
-!    call vint()
-!    nrtemp1 = BKtable(:,iy-1) + k1(:)*yh/2d0
-!    vint_in => nrtemp1
-!    vint_out => k2
-!    call vint()
-!    nrtemp2 = BKtable(:,iy-1) + k2(:)*yh/2d0
-!    vint_in =>  nrtemp2
-!    vint_out => k3
-!    call vint()
-!    nrtemp3 = BKtable(:,iy-1) + k3(:)*yh
-!    vint_in => nrtemp3
-!    vint_out => k4
-!    call vint()
-!    BKtable(:,iy) = BKtable(:,iy-1) + (k1(:)+2d0*k2(:)+2d0*k3(:)+k4(:))*yh/6d0
-!  endif
+  elseif(EvoMth.eq.2) then
+    vint_in => BKtable(:,iy-1)
+    vint_out => k1
+    call vint()
+    Nrt1 = BKtable(:,iy-1) + k1*yh/2d0
+    vint_in => Nrt1
+    vint_out => k2
+    call vint()
+    BKtable(:,iy) = BKtable(:,iy-1) + k2(:)*yh
+  elseif(EvoMth.eq.3) then
+    vint_in => BKtable(:,iy-1)
+    vint_out => k1
+    call vint()
+    Nrt1 = BKtable(:,iy-1) + k1(:)*yh/2d0
+    vint_in => Nrt1
+    vint_out => k2
+    call vint()
+    Nrt2 = BKtable(:,iy-1) + k2(:)*yh/2d0
+    vint_in =>  Nrt2
+    vint_out => k3
+    call vint()
+    Nrt3 = BKtable(:,iy-1) + k3(:)*yh
+    vint_in => Nrt3
+    vint_out => k4
+    call vint()
+    BKtable(:,iy) = BKtable(:,iy-1) + (k1(:)+2d0*k2(:)+2d0*k3(:)+k4(:))*yh/6d0
+  endif
   enddo
   end subroutine runBK
 
@@ -207,7 +207,6 @@ contains
       init = +1
       call vegas(region(1:2*ndim),fxn,init,ncall,itmax,nprn,avgi,sd,chi2a)
       if(avgi.lt.0d0) then
-        !write(*,*) "warning: negative gradient",ir,BKtable(ir,-1),vint_in(ir),avgi
         if(avgi.lt.-0.1d0) write(*,*) 'wow, too negative there',ir,vint_in(ir),avgi
         avgi = 0d0
       endif
@@ -338,11 +337,11 @@ contains
   endif
   ! check bound
   if(res.lt.0d0) then
-    write(*,*) "interpolation result error",res
+    !write(*,*) "interpolation result error",res
     res = 0d0
   endif
   if(res.gt.1d0) then
-    write(*,*) "interpolation result error",res
+    !write(*,*) "interpolation result error",res
     res = 1d0
   endif
   ! check NaN (develop mode)

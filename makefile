@@ -35,6 +35,9 @@ recipe = '@$$(FC) $$(FFLAGS) -I $$(moddir) $$(FOBJ) -o $$@'
 .SUFFIXES:
 .SUFFIXES: .f90 .o
 
+# default
+default: $(TARGET)
+
 # create directories if needed
 $(moddir):
 	$(shell mkdir -p $(moddir))
