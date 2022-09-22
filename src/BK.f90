@@ -199,19 +199,19 @@ contains
   endif
   do ir = 1,rn
     vint_rind = ir
-    if(vint_in(vint_rind).eq.1d0) then
-      vint_out(ir) = 0d0
-    else
+    !if(vint_in(vint_rind).eq.1d0) then
+    !  vint_out(ir) = 0d0
+    !else
       init = -1
       call vegas(region(1:2*ndim),fxn,init,ncall,itmax,nprn,avgi,sd,chi2a)
       init = +1
       call vegas(region(1:2*ndim),fxn,init,ncall,itmax,nprn,avgi,sd,chi2a)
-      if(avgi.lt.0d0) then
-        if(avgi.lt.-0.1d0) write(*,*) 'wow, too negative there',ir,vint_in(ir),avgi
-        avgi = 0d0
-      endif
+      !if(avgi.lt.0d0) then
+      !  if(avgi.lt.-0.1d0) write(*,*) 'wow, too negative there',ir,vint_in(ir),avgi
+      !  avgi = 0d0
+      !endif
       vint_out(ir) = avgi
-    endif
+    !endif
   enddo
   end subroutine vint
 
@@ -336,14 +336,14 @@ contains
     res = 0d0
   endif
   ! check bound
-  if(res.lt.0d0) then
+  !if(res.lt.0d0) then
     !write(*,*) "interpolation result error",res
-    res = 0d0
-  endif
-  if(res.gt.1d0) then
+    !res = 0d0
+  !endif
+  !if(res.gt.1d0) then
     !write(*,*) "interpolation result error",res
-    res = 1d0
-  endif
+    !res = 1d0
+  !endif
   ! check NaN (develop mode)
   if(isnan(res)) then
     write(*,*) "interpolation NaN error"
