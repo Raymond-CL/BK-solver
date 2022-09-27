@@ -3,7 +3,7 @@ module BK
   use nrtype
   implicit none
   ! precision settings
-  integer, parameter :: rp = sp
+  integer, parameter :: rp = dp
   ! i/o file names
   character(*), parameter :: ifname = 'input.dat'
   character(*), parameter :: ofname = 'BKtable.dat'
@@ -136,7 +136,8 @@ contains
   ! running evolution (Runge-Kutta)
   subroutine runBK()
   implicit none
-  integer(2) :: iy
+  integer(2) :: iy,ir
+  real(rp) :: temp
   do iy = 1,yn
   write(*,*) "solving: Y =", iy*(ymax/yn)
   if(EvoMth.eq.1) then
@@ -170,6 +171,20 @@ contains
     vint_out => k4
     call vint()
     BKtable(:,iy) = BKtable(:,iy-1) + (k1(:)+2d0*k2(:)+2d0*k3(:)+k4(:))*yh/6d0
+  endif
+  do ir = 1,rn
+    temp = BKtable(ir,iy)
+    if(temp .le. 0d0+epsilon(temp)) then
+      write(*,*) "something wrong here at",iy,ir,temp
+      BKtable(ir,iy) = 0d0
+    elseif(temp .ge. 1d0+epsilon(temp)) then
+      write(*,*) "something wrong here at",iy,ir,temp
+      BKtable(ir,iy) = 1d0
+    endif
+  enddo
+  if(mod(iy,10).eq.0) then
+    write(*,*) "temporary print to file"
+    call printBK()
   endif
   enddo
   end subroutine runBK
@@ -241,7 +256,7 @@ contains
     r12 = sqrt( (r01-pt2*cos(pt1))**2 + (pt2*sin(pt1))**2 )
   endif
   ! divergence handling
-  !if(r02.le.epsilon(r02) .or. r12.le.epsilon(r12)) return
+  if(r02.le.epsilon(r02) .or. r12.le.epsilon(r12)) return
   K = ker(r01,r02,r12)
   Nr01 = intpolr(vint_in,r01)
   Nr02 = intpolr(vint_in,r02)
@@ -287,10 +302,18 @@ contains
   implicit none
   real(rp), intent(in) :: r
   real(rp) :: res
+  real(rp) :: Nc,Nf,C2,Lqcd
+  Nc = 3d0
+  Nf = 3d0
+  C2 = 5.3d0
+  Lqcd = 0.247d0 
   if(RunCup.eq.1) then
     res = 0.2d0 ! fixed
   elseif(RunCup.eq.2) then
-    res = 0.7d0 ! to be implemented
+    res = 12d0*PI/(11d0*Nc-2d0*Nf)/log(4d0*C2/r/r/Lqcd/Lqcd)
+    if(res.ge.0.7d0 .or. res.lt.0d0 .or. r*r.gt.4d0*C2/Lqcd/Lqcd) then
+      res = 0.7d0 ! to be implemented
+    endif
   elseif(RunCup.eq.3) then
     res = 0d0   ! to be implemented
   endif
@@ -336,14 +359,14 @@ contains
     res = 0d0
   endif
   ! check bound
-  !if(res.lt.0d0) then
-    !write(*,*) "interpolation result error",res
-    !res = 0d0
-  !endif
-  !if(res.gt.1d0) then
-    !write(*,*) "interpolation result error",res
-    !res = 1d0
-  !endif
+  if(res.lt.0d0) then
+    write(*,*) "interpolation result error",res
+    res = 0d0
+  endif
+  if(res.gt.1d0) then
+    write(*,*) "interpolation result error",res
+    res = 1d0
+  endif
   ! check NaN (develop mode)
   if(isnan(res)) then
     write(*,*) "interpolation NaN error"

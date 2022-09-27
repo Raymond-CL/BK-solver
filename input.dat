@@ -6,4 +6,4 @@
 1                     ! EvoKer
 1                     ! RunCup
 2                     ! IntPol
-50000,10              ! ncall,itmax
+100000,10              ! ncall,itmax

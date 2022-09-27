@@ -2,6 +2,7 @@ program main
   use BK
   implicit none
   real :: tstart,tfinish
+  real(rp) :: test
   call cpu_time(tstart)
 
 
