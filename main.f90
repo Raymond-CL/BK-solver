@@ -2,17 +2,16 @@ program main
   use BK
   implicit none
   real :: tstart,tfinish
-  real(rp) :: test
   call cpu_time(tstart)
 
 
   call setBK()
 
-  call BKinfo()
+  !call BKinfo()
 
-  call runBK()
+  !call runBK()
 
-  call printBK()
+  !call printBK()
 
 
   call cpu_time(tfinish)

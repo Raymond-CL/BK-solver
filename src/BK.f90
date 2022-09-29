@@ -31,7 +31,8 @@ contains
   integer(2) :: ir
   real(rp) :: rt,r
   ! read from input.dat
-  open(unit=ifunit,file=ifname,status='old')
+  open(unit=ifunit,file=ifname,status='old',action='read',iostat=err)
+  if(err.ne.0) call exit(1)
   read(ifunit,*) rmin,rmax,rn
   read(ifunit,*) ymin,ymax,yn
   read(ifunit,*) IniCnd
@@ -45,6 +46,16 @@ contains
   ! verify input data integraity
   if(rmin.le.0d0 .or. rmax.le.rmin .or. &
      ymin.lt.0d0 .or. ymax.le.ymin) call exit(2)
+  if(rn.lt.2) call exit(2)
+  if(yn.lt.0) call exit(2)
+  if(IniCnd.le.0 .or. IniCnd.ge.4) call exit(2)
+  if(EvoMth.le.0 .or. EvoMth.ge.4) call exit(2)
+  if(IntMth.le.0 .or. IntMth.ge.4) call exit(2)
+  if(EvoKer.le.0 .or. EvoKer.ge.4) call exit(2)
+  if(RunCup.le.0 .or. RunCup.ge.4) call exit(2)
+  if(IntPol.le.0 .or. IntPol.ge.4) call exit(2)
+  if(ncall.lt.10000) call exit(2)
+  if(itmax.le.0 .or. itmax.gt.10) call exit(2)
   ! initialize BK table
   yh = (ymax-ymin)/dble(yn)
   allocate(BKtable(1:rn,-1:yn),stat=err)
@@ -58,21 +69,18 @@ contains
     BKtable(ir, 0) = iniBK(r)
   enddo
   ! initialize temporary arrays for ODE
-  if(EvoMth.eq.1) then
-    allocate(k1(1:rn))
-  elseif(EvoMth.eq.2) then
-    allocate(k1(1:rn))
+  allocate(k1(1:rn),stat=err)
+  if(EvoMth.ge.2) then
     allocate(k2(1:rn))
     allocate(Nrt1(1:rn))
-  elseif(EvoMth.eq.3) then
-    allocate(k1(1:rn))
-    allocate(k2(1:rn))
+  endif
+  if(EvoMth.eq.3) then
     allocate(k3(1:rn))
     allocate(k4(1:rn))
-    allocate(Nrt1(1:rn))
     allocate(Nrt2(1:rn))
     allocate(Nrt3(1:rn))
   endif
+  if(err.ne.0) call exit(4)
   end subroutine setBK
 
 
@@ -90,10 +98,7 @@ contains
     ny0 = 1d0 - exp( -(r*r*Qs2/4d0)**gam )
   elseif(IniCnd.eq.3) then
     ny0 = 1d0 - exp( -(r*r/4d0))
-  else
-    call exit(4)
   endif
-  return
   end function iniBK
 
 
