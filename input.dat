@@ -1,5 +1,5 @@
 1d-8,1d+02,201       ! rmin,rmax,rn
-0d0,50d0,500          ! ymin,ymax,yn
+0d0,1d0,1          ! ymin,ymax,yn
 1                     ! IniCnd
 1                     ! EvoMth
 1                     ! IntMth
